@@ -68,12 +68,20 @@ class RabbitMqConfig {
                 )
             ).build()
 
+    /** Fila do roteador: recebe tudo que a fila principal rejeita (NACK) */
+    @Bean
+    fun retryRouterQueue(): Queue = QueueBuilder.durable("video.retry").build()
+
     @Bean
     fun dlqQueue(): Queue = QueueBuilder.durable("video.dlq").build()
 
     @Bean
     fun videoProcessBinding(): Binding =
         BindingBuilder.bind(videoProcessQueue()).to(videoExchange()).with("video.process")
+
+    @Bean
+    fun retryRouterBinding(): Binding =
+        BindingBuilder.bind(retryRouterQueue()).to(retryExchange()).with("video.retry")
 
     @Bean
     fun retry30sBinding(): Binding =

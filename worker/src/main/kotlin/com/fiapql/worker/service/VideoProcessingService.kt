@@ -32,7 +32,9 @@ class VideoProcessingService(
         val video = videoRepository.findById(msg.videoId)
             .orElseThrow { IllegalArgumentException("Vídeo não encontrado: ${msg.videoId}") }
 
-        if (video.status != VideoStatus.PENDING) {
+        // Idempotência: não reprocessa vídeo finalizado. PROCESSING segue adiante,
+        // pois pode ser retry de uma tentativa que falhou no meio.
+        if (video.status == VideoStatus.COMPLETED || video.status == VideoStatus.FAILED) {
             log.warn("Vídeo {} já está {}, ignorando", msg.videoId, video.status)
             return
         }
