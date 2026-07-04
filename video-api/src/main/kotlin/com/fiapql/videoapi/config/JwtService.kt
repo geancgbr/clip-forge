@@ -12,7 +12,7 @@ import java.util.Date
 import javax.crypto.SecretKey
 
 @Service
-class JwtService(@Value("\${jwt.secret}") secret: String) {
+class JwtService(@Value($$"${jwt.secret}") secret: String) {
 
     private val key: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
 

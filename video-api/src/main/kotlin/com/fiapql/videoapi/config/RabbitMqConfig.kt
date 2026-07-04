@@ -9,11 +9,9 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class RabbitMqConfig {
 
-    /** Converte mensagens para JSON automaticamente */
     @Bean
     fun messageConverter() = Jackson2JsonMessageConverter()
 
-    /** RabbitTemplate com publisher-confirms e conversor JSON */
     @Bean
     fun rabbitTemplate(cf: ConnectionFactory): RabbitTemplate {
         val template = RabbitTemplate(cf)

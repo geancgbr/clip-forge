@@ -8,7 +8,7 @@ data class VideoResponse(
     val id: UUID?,
     val originalFilename: String,
     val status: VideoStatus,
-    val downloadUrl: String?,       // preenchido apenas quando COMPLETED
+    val downloadUrl: String?,
     val createdAt: LocalDateTime?,
     val updatedAt: LocalDateTime?
 )

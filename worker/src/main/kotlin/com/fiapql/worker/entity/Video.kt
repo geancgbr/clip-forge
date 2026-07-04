@@ -27,9 +27,9 @@ class Video(
     var originalFilename: String = "",
 
     @Column(nullable = false)
-    var minioKey: String = "",       // vídeo bruto
+    var minioKey: String = "",
 
-    var zipKey: String? = null,      // zip gerado (null até COMPLETED)
+    var zipKey: String? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

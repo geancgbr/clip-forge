@@ -32,7 +32,6 @@ class VideoProcessingService(
         val video = videoRepository.findById(msg.videoId)
             .orElseThrow { IllegalArgumentException("Vídeo não encontrado: ${msg.videoId}") }
 
-        // 1. Marca como PROCESSING (idempotente: só avança se estiver PENDING)
         if (video.status != VideoStatus.PENDING) {
             log.warn("Vídeo {} já está {}, ignorando", msg.videoId, video.status)
             return
@@ -42,7 +41,6 @@ class VideoProcessingService(
 
         val tempDir = Files.createTempDirectory("fiapx-${msg.videoId}")
         try {
-            // 2. Baixa o vídeo do MinIO
             val videoFile = tempDir.resolve("input.mp4")
             minioClient.getObject(
                 GetObjectArgs.builder().bucket(videoBucket).`object`(msg.minioKey).build()
@@ -50,12 +48,10 @@ class VideoProcessingService(
                 Files.copy(stream, videoFile)
             }
 
-            // 3. Extrai frames com FFmpeg (1 frame por segundo)
             val framesDir = tempDir.resolve("frames")
             Files.createDirectory(framesDir)
             runFfmpeg(videoFile, framesDir)
 
-            // 4. Gera ZIP dos frames e faz upload para MinIO
             val zipKey = "processed/${msg.videoId}/frames.zip"
             val zipFile = tempDir.resolve("frames.zip")
             zipDirectory(framesDir, zipFile)
@@ -71,7 +67,6 @@ class VideoProcessingService(
                 )
             }
 
-            // 5. Marca COMPLETED
             video.status = VideoStatus.COMPLETED
             video.zipKey = zipKey
             videoRepository.save(video)
@@ -88,7 +83,6 @@ class VideoProcessingService(
             framesDir.resolve("frame_%04d.png").toString()
         ).redirectErrorStream(true).start()
 
-        // consome stdout para não travar
         cmd.inputStream.bufferedReader().useLines { lines ->
             lines.forEach { log.debug("[ffmpeg] {}", it) }
         }

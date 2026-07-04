@@ -14,11 +14,6 @@ class DlqConsumer(private val emailService: EmailService) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * Consome video.dlq — mensagens que falharam 3x no worker.
-     * ACK sempre ao final: o e-mail pode falhar silenciosamente (log),
-     * mas a mensagem não deve voltar para a fila.
-     */
     @RabbitListener(
         queues = ["\${rabbitmq.queues.dlq:video.dlq}"],
         containerFactory = "manualAckFactory"

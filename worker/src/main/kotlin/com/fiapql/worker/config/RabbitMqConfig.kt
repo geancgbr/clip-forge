@@ -16,8 +16,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class RabbitMqConfig {
 
-    // ── Exchanges ─────────────────────────────────────────────────────────────
-
     @Bean
     fun videoExchange() = DirectExchange("video.ex", true, false)
 
@@ -27,9 +25,7 @@ class RabbitMqConfig {
     @Bean
     fun dlxExchange() = DirectExchange("video.dlx", true, false)
 
-    // ── Filas ─────────────────────────────────────────────────────────────────
 
-    /** Fila principal: quorum, DLX apontando para retry */
     @Bean
     fun videoProcessQueue(): Queue =
         QueueBuilder.durable("video.process")
@@ -50,7 +46,6 @@ class RabbitMqConfig {
                 )
             ).build()
 
-    /** Retry 2 min */
     @Bean
     fun retryQueue2m(): Queue =
         QueueBuilder.durable("video.retry.2m")
@@ -62,7 +57,6 @@ class RabbitMqConfig {
                 )
             ).build()
 
-    /** Retry 10 min */
     @Bean
     fun retryQueue10m(): Queue =
         QueueBuilder.durable("video.retry.10m")
@@ -74,11 +68,8 @@ class RabbitMqConfig {
                 )
             ).build()
 
-    /** DLQ: mensagens sem mais tentativas */
     @Bean
     fun dlqQueue(): Queue = QueueBuilder.durable("video.dlq").build()
-
-    // ── Bindings ──────────────────────────────────────────────────────────────
 
     @Bean
     fun videoProcessBinding(): Binding =

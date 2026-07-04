@@ -12,14 +12,12 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class RabbitMqConfig {
 
-    /** DLQ declarada aqui também para garantir que exista ao subir o serviço */
     @Bean
     fun dlqQueue(): Queue = QueueBuilder.durable("video.dlq").build()
 
     @Bean
     fun messageConverter() = Jackson2JsonMessageConverter()
 
-    /** Container factory com ACK manual (mesmo padrão do worker) */
     @Bean
     fun manualAckFactory(cf: ConnectionFactory): SimpleRabbitListenerContainerFactory {
         val factory = SimpleRabbitListenerContainerFactory()

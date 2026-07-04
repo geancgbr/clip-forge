@@ -14,11 +14,6 @@ class VideoProcessingConsumer(private val processingService: VideoProcessingServ
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * prefetch = 1  →  um vídeo por vez por worker.
-     * acknowledgeMode = MANUAL  →  ACK/NACK controlados manualmente abaixo.
-     * containerFactory definida em RabbitMqConfig.
-     */
     @RabbitListener(
         queues = ["\${rabbitmq.queues.video-process:video.process}"],
         containerFactory = "manualAckFactory"
@@ -38,13 +33,6 @@ class VideoProcessingConsumer(private val processingService: VideoProcessingServ
             log.info("ACK: videoId={}", message.videoId)
         } catch (ex: Exception) {
             log.error("Falha ao processar videoId={}: {}", message.videoId, ex.message, ex)
-
-            /*
-             * NACK com requeue=false:
-             *   - RabbitMQ NÃO devolve a mensagem para a mesma fila
-             *   - x-dead-letter-exchange roteia para video.retry.ex
-             *   - RetryRouterConsumer lê x-death e decide: retry 30s/2m/10m ou DLQ
-             */
             try {
                 channel.basicNack(deliveryTag, false, false)
             } catch (nackEx: Exception) {
