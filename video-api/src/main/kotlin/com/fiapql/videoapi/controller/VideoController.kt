@@ -3,6 +3,8 @@ package com.fiapql.videoapi.controller
 import com.fiapql.videoapi.dto.VideoResponse
 import com.fiapql.videoapi.entity.User
 import com.fiapql.videoapi.service.VideoService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -18,8 +20,10 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/videos")
+@SecurityRequirement(name = "bearerAuth")
 class VideoController(private val videoService: VideoService) {
 
+    @Operation(summary = "Envia um vídeo para processamento (retorna 202 Accepted)")
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
         @RequestParam("file") file: MultipartFile,
@@ -29,10 +33,12 @@ class VideoController(private val videoService: VideoService) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(resp)
     }
 
+    @Operation(summary = "Lista os vídeos do usuário autenticado com seus status")
     @GetMapping
     fun list(@AuthenticationPrincipal user: User): ResponseEntity<List<VideoResponse>> =
         ResponseEntity.ok(videoService.listByUser(user.id.toString()))
 
+    @Operation(summary = "Status de um vídeo; downloadUrl preenchido quando COMPLETED")
     @GetMapping("/{id}")
     fun getStatus(
         @PathVariable id: UUID,

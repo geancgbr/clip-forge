@@ -4,6 +4,7 @@ import com.fiapql.authapi.dto.AuthResponse
 import com.fiapql.authapi.dto.LoginRequest
 import com.fiapql.authapi.dto.RegisterRequest
 import com.fiapql.authapi.service.AuthService
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/auth")
 class AuthController(private val authService: AuthService) {
 
+    @Operation(summary = "Cria um usuário e retorna o token JWT")
     @PostMapping("/register")
     fun register(@Valid @RequestBody req: RegisterRequest): ResponseEntity<AuthResponse> =
         ResponseEntity.status(HttpStatus.CREATED).body(authService.register(req))
 
+    @Operation(summary = "Autentica e retorna o token JWT")
     @PostMapping("/login")
     fun login(@Valid @RequestBody req: LoginRequest): ResponseEntity<AuthResponse> =
         ResponseEntity.ok(authService.login(req))
