@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: worker
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/fiapx}
+    username: ${SPRING_DATASOURCE_USERNAME:fiapx}
+    password: ${SPRING_DATASOURCE_PASSWORD:fiapx}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  rabbitmq:
+    host:     ${SPRING_RABBITMQ_HOST:localhost}
+    port:     ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:fiapx}
+    password: ${SPRING_RABBITMQ_PASSWORD:fiapx}
+    publisher-confirm-type: correlated
+
+minio:
+  url:        ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket:
+    videos:    ${MINIO_BUCKET_VIDEOS:videos}
+    processed: ${MINIO_BUCKET_PROCESSED:processed}

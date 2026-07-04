@@ -1,0 +1,160 @@
+services:
+
+  # ──────────────── Infraestrutura ────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fiapx
+      POSTGRES_USER: fiapx
+      POSTGRES_PASSWORD: fiapx
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiapx"]
+      interval: 10s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: fiapx
+      RABBITMQ_DEFAULT_PASS: fiapx
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"   # Console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      retries: 5
+
+  # ──────────────── Aplicação ────────────────
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: auth-api/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fiapx
+      SPRING_DATASOURCE_USERNAME: fiapx
+      SPRING_DATASOURCE_PASSWORD: fiapx
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-secret-key}
+      JWT_EXPIRATION_MS: 86400000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  video-api:
+    build:
+      context: .
+      dockerfile: video-api/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fiapx
+      SPRING_DATASOURCE_USERNAME: fiapx
+      SPRING_DATASOURCE_PASSWORD: fiapx
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: fiapx
+      SPRING_RABBITMQ_PASSWORD: fiapx
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_VIDEOS: videos
+      AUTH_API_URL: http://auth-api:8081
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-secret-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    deploy:
+      replicas: 2           # escalar aqui: docker compose up --scale worker=N
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: fiapx
+      SPRING_RABBITMQ_PASSWORD: fiapx
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fiapx
+      SPRING_DATASOURCE_USERNAME: fiapx
+      SPRING_DATASOURCE_PASSWORD: fiapx
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_VIDEOS: videos
+      MINIO_BUCKET_PROCESSED: processed
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: fiapx
+      SPRING_RABBITMQ_PASSWORD: fiapx
+      SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:

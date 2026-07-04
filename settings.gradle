@@ -1,0 +1,8 @@
+rootProject.name = "fiapx"
+
+include(
+    "auth-api",
+    "video-api",
+    "worker",
+    "notification-service"
+)

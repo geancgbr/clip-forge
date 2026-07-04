@@ -1,0 +1,13 @@
+plugins {
+    id "org.springframework.boot"
+}
+
+dependencies {
+    implementation "org.springframework.boot:spring-boot-starter-amqp"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+
+    // MinIO SDK
+    implementation "io.minio:minio:8.5.10"
+
+    runtimeOnly "org.postgresql:postgresql"
+}

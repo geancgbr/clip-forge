@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: video-api
+
+  datasource:
+    url:      ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/fiapx}
+    username: ${SPRING_DATASOURCE_USERNAME:fiapx}
+    password: ${SPRING_DATASOURCE_PASSWORD:fiapx}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+
+  rabbitmq:
+    host:                ${SPRING_RABBITMQ_HOST:localhost}
+    port:                ${SPRING_RABBITMQ_PORT:5672}
+    username:            ${SPRING_RABBITMQ_USERNAME:fiapx}
+    password:            ${SPRING_RABBITMQ_PASSWORD:fiapx}
+    publisher-confirm-type: correlated
+
+  servlet:
+    multipart:
+      max-file-size:    500MB
+      max-request-size: 500MB
+
+server:
+  port: ${SERVER_PORT:8082}
+
+jwt:
+  secret: ${JWT_SECRET:change-me-in-production-at-least-32-chars!!}
+
+minio:
+  url:        ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket:
+    videos:    ${MINIO_BUCKET_VIDEOS:videos}
+    processed: ${MINIO_BUCKET_PROCESSED:processed}
+
+rabbitmq:
+  exchange:    ${RABBITMQ_EXCHANGE:video.ex}
+  routing-key: ${RABBITMQ_ROUTING_KEY:video.process}
