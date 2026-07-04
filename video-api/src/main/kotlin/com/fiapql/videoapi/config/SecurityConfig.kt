@@ -1,0 +1,34 @@
+package com.fiapql.videoapi.config
+
+import com.fiapql.videoapi.repository.UserRepository
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+
+@Configuration
+@EnableWebSecurity
+class SecurityConfig(
+    private val jwtAuthFilter: JwtAuthFilter,
+    private val userRepository: UserRepository
+) {
+    @Bean
+    fun filterChain(http: HttpSecurity): SecurityFilterChain =
+        http
+            .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests { it.anyRequest().authenticated() }
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .build()
+
+    @Bean
+    fun userDetailsService() = UserDetailsService { email ->
+        userRepository.findByEmail(email)
+            .orElseThrow { UsernameNotFoundException("Usuário não encontrado") }
+    }
+}
