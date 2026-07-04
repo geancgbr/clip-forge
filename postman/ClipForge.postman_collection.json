@@ -1,0 +1,111 @@
+{
+  "info": {
+    "name": "ClipForge — FIAP X",
+    "description": "Fluxo completo: registre-se (ou faça login) e o token JWT é salvo automaticamente na collection; as requisições de vídeo já o enviam como Bearer.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "authUrl", "value": "http://localhost:8081" },
+    { "key": "videoUrl", "value": "http://localhost:8082" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Registrar usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "    console.log('Token salvo na collection');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{authUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"gean@fiapx.com\",\n  \"password\": \"senha123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('token', pm.response.json().token);",
+                  "    console.log('Token salvo na collection');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{authUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"gean@fiapx.com\",\n  \"password\": \"senha123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vídeos",
+      "item": [
+        {
+          "name": "Upload de vídeo",
+          "request": {
+            "method": "POST",
+            "url": "{{videoUrl}}/videos/upload",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] }
+              ]
+            },
+            "description": "Selecione um arquivo de vídeo no campo 'file'. Resposta esperada: 202 Accepted com status PENDING."
+          }
+        },
+        {
+          "name": "Listar meus vídeos",
+          "request": {
+            "method": "GET",
+            "url": "{{videoUrl}}/videos"
+          }
+        },
+        {
+          "name": "Status de um vídeo",
+          "request": {
+            "method": "GET",
+            "url": "{{videoUrl}}/videos/{{videoId}}",
+            "description": "Defina a variável videoId com o id retornado no upload ou na listagem. Quando COMPLETED, a resposta traz downloadUrl."
+          }
+        }
+      ]
+    }
+  ]
+}
