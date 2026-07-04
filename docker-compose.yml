@@ -9,9 +9,10 @@ services:
       POSTGRES_USER: fiapx
       POSTGRES_PASSWORD: fiapx
     ports:
-      - "5432:5432"
+      - "5440:5432"   # 5440 no host: evita conflito com Postgres locais (5432/5433)
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U fiapx"]
       interval: 10s
