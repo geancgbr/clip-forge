@@ -6,12 +6,31 @@
   },
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [
-    { "key": "authUrl", "value": "http://localhost:8081" },
-    { "key": "videoUrl", "value": "http://localhost:8082" },
-    { "key": "token", "value": "" }
+    {
+      "key": "authUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "videoUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "videoId",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -34,9 +53,16 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{authUrl}}/auth/register",
             "body": {
               "mode": "raw",
@@ -61,9 +87,16 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{authUrl}}/auth/login",
             "body": {
               "mode": "raw",
@@ -84,11 +117,29 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": [] }
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
               ]
             },
             "description": "Selecione um arquivo de vídeo no campo 'file'. Resposta esperada: 202 Accepted com status PENDING."
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    pm.collectionVariables.set('videoId', pm.response.json().id);",
+                  "    console.log('videoId salvo na collection');",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Listar meus vídeos",
