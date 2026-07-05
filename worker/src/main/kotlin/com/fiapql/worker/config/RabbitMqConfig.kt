@@ -1,5 +1,7 @@
 package com.fiapql.worker.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.amqp.core.AcknowledgeMode
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
@@ -111,8 +113,13 @@ class RabbitMqConfig {
         return factory
     }
 
+    // Sem spring-web o Boot não auto-configura ObjectMapper; o módulo Kotlin é
+    // necessário para desserializar as data classes das mensagens
     @Bean
-    fun jackson2JsonMessageConverter() = Jackson2JsonMessageConverter()
+    fun objectMapper(): ObjectMapper = jacksonObjectMapper()
+
+    @Bean
+    fun jackson2JsonMessageConverter() = Jackson2JsonMessageConverter(objectMapper())
 
     @Bean
     fun rabbitAdmin(cf: ConnectionFactory) = RabbitAdmin(cf)

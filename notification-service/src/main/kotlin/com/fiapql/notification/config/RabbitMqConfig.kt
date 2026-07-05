@@ -1,5 +1,6 @@
 package com.fiapql.notification.config
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.amqp.core.AcknowledgeMode
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.core.QueueBuilder
@@ -15,8 +16,9 @@ class RabbitMqConfig {
     @Bean
     fun dlqQueue(): Queue = QueueBuilder.durable("video.dlq").build()
 
+    // ObjectMapper com módulo Kotlin: necessário para desserializar a data class da mensagem
     @Bean
-    fun messageConverter() = Jackson2JsonMessageConverter()
+    fun messageConverter() = Jackson2JsonMessageConverter(jacksonObjectMapper())
 
     @Bean
     fun manualAckFactory(cf: ConnectionFactory): SimpleRabbitListenerContainerFactory {
